@@ -23,6 +23,12 @@ In the linked list-based approach, a sorted linked list is used to construct the
 2. **Execution**: Run the compiled executable, providing the input text to be compressed.
 3. **Output**: The program outputs the initial size of the input text, the size of the encoded text, and the compression ratio achieved.
 
+## Exemple
+
+```bash
+g++ main.cpp -o huffman
+./huffman
+
 ## Example
 Suppose we have the input text "ABRACADABRA". After compression, the initial size of the text is 11 bytes. The encoded text size is 6 bits. The compression ratio achieved is (11 * 8) / 6 = 14.67x.
 

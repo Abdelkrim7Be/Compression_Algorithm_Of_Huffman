@@ -90,22 +90,55 @@ void writeEncodedTextToFile(const string& encodedText, const string& fileName) {
     }
 }
 
+void serializeHuffmanTree(Node* root, ofstream& outFile) {
+    if (root == nullptr) {
+        outFile << "N\n";
+        return;
+    }
+
+    outFile << root->data << ":" << root->freq << "\n";
+    serializeHuffmanTree(root->left, outFile);
+    serializeHuffmanTree(root->right, outFile);
+}
+
+
+Node* deserializeHuffmanTree(ifstream& inFile) {
+    string line;
+    getline(inFile, line);
+    if (line == "N") {
+        return nullptr;
+    }
+
+    istringstream iss(line);
+    char data;
+    unsigned freq;
+    iss >> data;
+    iss.ignore();
+    iss >> freq;
+
+    Node* root = createNode(data, freq);
+    root->left = deserializeHuffmanTree(inFile);
+    root->right = deserializeHuffmanTree(inFile);
+
+    return root;
+}
+
 int main() {
 
-    cout<<  "___                    .-.       .-."   << endl;
-    cout << "(   )                  /    \    /    \       " << endl;
-    cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
-    cout << " | |/   \  (   )(   )  | |(___)  | |(___) (   )   '   \   / .-, \ (   )   \ "<< endl;
-    cout << "|  .-. .   | |  | |   | |_      | |_      |  .-.  .-. ; (__) ; |  |  .-. . "<< endl;
-    cout << "| |  | |   | |  | |  (   __)   (   __)    | |  | |  | |   .'`  |  | |  | | "<< endl;
-    cout << "| |  | |   | |  | |   | |       | |       | |  | |  | |  / .'| |  | |  | | "<< endl;
-    cout << "| |  | |   | |  | |   | |       | |       | |  | |  | | | /  | |  | |  | | "<< endl;
-    cout << "| |  | |   | |  ; '   | |       | |       | |  | |  | | ; |  ; |  | |  | | "<< endl;
-    cout << "| |  | |   ' `-'  /   | |       | |       | |  | |  | | ' `-'  |  | |  | | "<< endl;
-    cout << "(___)(___)   '.__.'   (___)     (___)     (___)(___)(___)`.__.'_. (___)(___) "<< endl;
+cout<<  "___                    .-.       .-."   << endl;
+cout << "(   )                  /    \    /    \       " << endl;
+cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
+cout << " | |/   \  (   )(   )  | |(___)  | |(___) (   )   '   \   / .-, \ (   )   \ "<< endl;
+cout << "|  .-. .   | |  | |   | |_      | |_      |  .-.  .-. ; (__) ; |  |  .-. . "<< endl;
+cout << "| |  | |   | |  | |  (   __)   (   __)    | |  | |  | |   .'`  |  | |  | | "<< endl;
+cout << "| |  | |   | |  | |   | |       | |       | |  | |  | |  / .'| |  | |  | | "<< endl;
+cout << "| |  | |   | |  | |   | |       | |       | |  | |  | | | /  | |  | |  | | "<< endl;
+cout << "| |  | |   | |  ; '   | |       | |       | |  | |  | | ; |  ; |  | |  | | "<< endl;
+cout << "| |  | |   ' `-'  /   | |       | |       | |  | |  | | ' `-'  |  | |  | | "<< endl;
+cout << "(___)(___)   '.__.'   (___)     (___)     (___)(___)(___)`.__.'_. (___)(___) "<< endl;
 
 
-    cout << "\n\n\n\n";
+cout << "\n\n\n\n";
 
     string paragraph = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
                        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
@@ -142,6 +175,21 @@ int main() {
     cout << "Initial size: " << initialSize << " bytes(octets)" << endl;
     cout << "Encoded size: " << encodedSize << " bits" << endl;
     cout << "Compression ratio: " << ((initialSize * 8) / static_cast<double>(encodedSize)) << "x" << endl;
+
+    ofstream outFile("huffman_tree.txt");
+    serializeHuffmanTree(root, outFile);
+    outFile.close();
+
+    ifstream inFile("huffman_tree.txt");
+    Node* deserializedRoot = deserializeHuffmanTree(inFile);
+    inFile.close();
+
+    cout << "Deserialized Huffman tree:" << endl;
+    printHuffmanCodes(deserializedRoot, "", huffmanCodes);
+    for (const auto& code : huffmanCodes) {
+    cout << code.first << " : " << code.second << endl;
+}
+
 
     return 0;
 }
