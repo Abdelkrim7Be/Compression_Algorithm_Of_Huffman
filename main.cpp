@@ -1,163 +1,131 @@
 #include <iostream>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
-#define MAX_HEAP_SIZE 10000
-
+#include <string>
+#include <map>
+#include <fstream>
+#include <sstream>
+#include <queue>
 using namespace std;
 
-#define MAX_HEAP_SIZE 50
-
 struct Node {
+    char data;
     unsigned freq;
-    char item;
-    Node *left, *right;
+    Node* left, *right;
 };
 
-class MinHeap {
-private:
-    vector<Node> heap;
-    int size;
-
-    int parent(int i) { return (i - 1) / 2; }
-    int leftChild(int i) { return 2 * i + 1; }
-    int rightChild(int i) { return 2 * i + 2; }
-
-    void heapifyUp(int i) {
-        while (i != 0 && heap[parent(i)].freq > heap[i].freq) {
-            swap(heap[i], heap[parent(i)]);
-            i = parent(i);
-        }
-    }
-
-    void heapifyDown(int i) {
-        int minIndex = i;
-        int l = leftChild(i);
-        int r = rightChild(i);
-
-        if (l < size && heap[l].freq < heap[minIndex].freq)
-            minIndex = l;
-
-        if (r < size && heap[r].freq < heap[minIndex].freq)
-            minIndex = r;
-
-        if (i != minIndex) {
-            swap(heap[i], heap[minIndex]);
-            heapifyDown(minIndex);
-        }
-    }
-
-public:
-    MinHeap() {
-        size = 0;
-        heap.resize(MAX_HEAP_SIZE);
-    }
-
-    void insert(Node node) {
-        if (size == MAX_HEAP_SIZE) {
-            cout << "Heap is full!" << endl;
-            return;
-        }
-
-        heap[size++] = node;
-        heapifyUp(size - 1);
-    }
-
-    Node extractMin() {
-        if (size <= 0) {
-            Node nullNode;
-            nullNode.freq = -1;
-            return nullNode;
-        }
-
-        Node minNode = heap[0];
-        heap[0] = heap[size - 1];
-        size--;
-        heapifyDown(0);
-        return minNode;
-    }
-
-    int getSize() {
-        return size;
-    }
-};
-
-Node* createNode(char item, unsigned freq) {
+Node* createNode(char data, unsigned freq) {
     Node* temp = new Node();
-    temp->item = item;
+    temp->left = temp->right = nullptr;
+    temp->data = data;
     temp->freq = freq;
-    temp->left = temp->right = NULL;
     return temp;
 }
 
+struct compare {
+    bool operator()(Node* l, Node* r) {
+        return (l->freq > r->freq);
+    }
+};
+
 Node* buildHuffmanTree(const vector<char>& items, const vector<unsigned>& freqs) {
-    MinHeap minHeap;
+    priority_queue<Node*, vector<Node*>, compare> pq;
 
     for (size_t i = 0; i < items.size(); ++i)
-        minHeap.insert(*createNode(items[i], freqs[i]));
+        pq.push(createNode(items[i], freqs[i]));
 
-    while (minHeap.getSize() != 1) {
-        Node *left = new Node(minHeap.extractMin());
-        Node *right = new Node(minHeap.extractMin());
-
-        Node *top = createNode('$', left->freq + right->freq);
+    while (pq.size() != 1) {
+        Node* left = pq.top(); pq.pop();
+        Node* right = pq.top(); pq.pop();
+        Node* top = createNode('$', left->freq + right->freq);
         top->left = left;
         top->right = right;
-        minHeap.insert(*top);
+        pq.push(top);
     }
-    Node* root = new Node(minHeap.extractMin());
-    return root;
+    return pq.top();
 }
 
-void printCodes(Node* root, vector<int>& arr, int top) {
-    if (root->left) {
-        arr[top] = 0;
-        printCodes(root->left, arr, top + 1);
-    }
-    if (root->right) {
-        arr[top] = 1;
-        printCodes(root->right, arr, top + 1);
-    }
-    if (!(root->left) && !(root->right)) {
-        cout << root->item << " \t|\t ";
-        for (int i = 0; i < top; ++i)
-            cout << arr[i];
-        cout << endl;
-    }
+void printHuffmanCodes(Node* root, string str, map<char, string>& huffmanCodes) {
+    if (!root)
+        return;
+
+    if (root->data != '$')
+        huffmanCodes[root->data] = str;
+
+    printHuffmanCodes(root->left, str + "0", huffmanCodes);
+    printHuffmanCodes(root->right, str + "1", huffmanCodes);
 }
 
-
-void generateCodes(const vector<char>& items, const vector<unsigned>& freqs) {
-    Node* root = buildHuffmanTree(items, freqs);
-    vector<int> arr(MAX_HEAP_SIZE, 0);
-    printCodes(root, arr, 0);
+string encodeText(const string& text, const map<char, string>& huffmanCodes) {
+    string encodedText = "";
+    for (char c : text)
+        encodedText += huffmanCodes.at(c);
+    return encodedText;
 }
 
-char generateRandomChar() {
-    return static_cast<char>('A' + rand() % 26);
-}
-
-unsigned generateRandomFreq() {
-    return rand() % 1000;
+void writeEncodedTextToFile(const string& encodedText, const string& fileName) {
+    ofstream outFile(fileName);
+    if (outFile.is_open()) {
+        outFile << encodedText;
+        outFile.close();
+        cout << "Encoded text written to file: " << fileName << endl;
+    }
+    else {
+        cerr << "Unable to open file for writing." << endl;
+    }
 }
 
 int main() {
-    srand(time(0));
 
-    const int dataSize = 25;
+
+cout<<  "___                    .-.       .-."   << endl;
+cout << "(   )                  /    \    /    \       " << endl;
+cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
+cout << " | |/   \  (   )(   )  | |(___)  | |(___) (   )   '   \   / .-, \ (   )   \ "<< endl;
+cout << "|  .-. .   | |  | |   | |_      | |_      |  .-.  .-. ; (__) ; |  |  .-. . "<< endl;
+cout << "| |  | |   | |  | |  (   __)   (   __)    | |  | |  | |   .'`  |  | |  | | "<< endl;
+cout << "| |  | |   | |  | |   | |       | |       | |  | |  | |  / .'| |  | |  | | "<< endl;
+cout << "| |  | |   | |  | |   | |       | |       | |  | |  | | | /  | |  | |  | | "<< endl;
+cout << "| |  | |   | |  ; '   | |       | |       | |  | |  | | ; |  ; |  | |  | | "<< endl;
+cout << "| |  | |   ' `-'  /   | |       | |       | |  | |  | | ' `-'  |  | |  | | "<< endl;
+cout << "(___)(___)   '.__.'   (___)     (___)     (___)(___)(___)`.__.'_. (___)(___) "<< endl;
+
+
+cout << "\n\n\n\n";
+    string paragraph = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                       "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                       "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+                       "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. "
+                       "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+    cout << "Paragraph à compresser:" << endl;
+    cout << paragraph << endl << endl;
+
+    map<char, unsigned> freqMap;
+    for (char c : paragraph)
+        freqMap[c]++;
+
     vector<char> items;
     vector<unsigned> freqs;
-
-    for (int i = 0; i < dataSize; ++i) {
-        char character = generateRandomChar();
-        unsigned frequency = generateRandomFreq();
-        items.push_back(character);
-        freqs.push_back(frequency);
+    for (const auto& entry : freqMap) {
+        items.push_back(entry.first);
+        freqs.push_back(entry.second);
     }
+    Node* root = buildHuffmanTree(items, freqs);
 
-    cout << "Letter\t|\tHuffman coded " << endl;
-    cout << "******************************" << endl;
-    generateCodes(items, freqs);
+    map<char, string> huffmanCodes;
+    printHuffmanCodes(root, "", huffmanCodes);
+
+    string encodedText = encodeText(paragraph, huffmanCodes);
+
+    writeEncodedTextToFile(encodedText, "encoded_text.txt");
+
+    size_t initialSize = paragraph.size();
+
+    size_t encodedSize = encodedText.size();
+
+    cout << "Initial size: " << initialSize << " byes(octets)" << endl;
+    cout << "Encoded size: " << encodedSize << " bits" << endl;
+    cout << "Compression ratio: " << ((initialSize * 8) / static_cast<double>(encodedSize)) << "x" << endl;
 
     return 0;
 }

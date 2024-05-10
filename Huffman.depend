@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1715331128 source:c:\users\lenovo\desktop\huffman\main.cpp
+	<iostream>
+	<vector>
+	<string>
+	<map>
+	<fstream>
+	<sstream>
+	<queue>
+
