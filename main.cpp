@@ -4,48 +4,64 @@
 #include <map>
 #include <fstream>
 #include <sstream>
-#include <queue>
 using namespace std;
 
 struct Node {
     char data;
     unsigned freq;
-    Node* left, *right;
+    Node* next;
+    Node* left;
+    Node* right;
 };
 
 Node* createNode(char data, unsigned freq) {
     Node* temp = new Node();
-    temp->left = temp->right = nullptr;
     temp->data = data;
     temp->freq = freq;
+    temp->next = nullptr;
+    temp->left = nullptr;
+    temp->right = nullptr;
     return temp;
 }
 
-struct compare {
-    bool operator()(Node* l, Node* r) {
-        return (l->freq > r->freq);
+void insertSorted(Node** head, Node* newNode) {
+    if (*head == nullptr || (*head)->freq >= newNode->freq) {
+        newNode->next = *head;
+        *head = newNode;
+    } else {
+        Node* current = *head;
+        while (current->next != nullptr && current->next->freq < newNode->freq) {
+            current = current->next;
+        }
+        newNode->next = current->next;
+        current->next = newNode;
     }
-};
+}
 
 Node* buildHuffmanTree(const vector<char>& items, const vector<unsigned>& freqs) {
-    priority_queue<Node*, vector<Node*>, compare> pq;
+    Node* head = nullptr;
+    for (size_t i = 0; i < items.size(); ++i) {
+        Node* newNode = createNode(items[i], freqs[i]);
+        insertSorted(&head, newNode);
+    }
 
-    for (size_t i = 0; i < items.size(); ++i)
-        pq.push(createNode(items[i], freqs[i]));
+    while (head->next != nullptr) {
+        Node* left = head;
+        Node* right = head->next;
+        head = head->next->next;
 
-    while (pq.size() != 1) {
-        Node* left = pq.top(); pq.pop();
-        Node* right = pq.top(); pq.pop();
         Node* top = createNode('$', left->freq + right->freq);
         top->left = left;
         top->right = right;
-        pq.push(top);
+
+        insertSorted(&head, top);
     }
-    return pq.top();
+
+    return head;
 }
 
 void printHuffmanCodes(Node* root, string str, map<char, string>& huffmanCodes) {
-    if (!root)
+    if (root == nullptr)
         return;
 
     if (root->data != '$')
@@ -75,20 +91,22 @@ void writeEncodedTextToFile(const string& encodedText, const string& fileName) {
 }
 
 int main() {
-cout<<  "___                    .-.       .-."   << endl;
-cout << "(   )                  /    \    /    \       " << endl;
-cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
-cout << " | |/   \  (   )(   )  | |(___)  | |(___) (   )   '   \   / .-, \ (   )   \ "<< endl;
-cout << "|  .-. .   | |  | |   | |_      | |_      |  .-.  .-. ; (__) ; |  |  .-. . "<< endl;
-cout << "| |  | |   | |  | |  (   __)   (   __)    | |  | |  | |   .'`  |  | |  | | "<< endl;
-cout << "| |  | |   | |  | |   | |       | |       | |  | |  | |  / .'| |  | |  | | "<< endl;
-cout << "| |  | |   | |  | |   | |       | |       | |  | |  | | | /  | |  | |  | | "<< endl;
-cout << "| |  | |   | |  ; '   | |       | |       | |  | |  | | ; |  ; |  | |  | | "<< endl;
-cout << "| |  | |   ' `-'  /   | |       | |       | |  | |  | | ' `-'  |  | |  | | "<< endl;
-cout << "(___)(___)   '.__.'   (___)     (___)     (___)(___)(___)`.__.'_. (___)(___) "<< endl;
+
+    cout<<  "___                    .-.       .-."   << endl;
+    cout << "(   )                  /    \    /    \       " << endl;
+    cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
+    cout << " | |/   \  (   )(   )  | |(___)  | |(___) (   )   '   \   / .-, \ (   )   \ "<< endl;
+    cout << "|  .-. .   | |  | |   | |_      | |_      |  .-.  .-. ; (__) ; |  |  .-. . "<< endl;
+    cout << "| |  | |   | |  | |  (   __)   (   __)    | |  | |  | |   .'`  |  | |  | | "<< endl;
+    cout << "| |  | |   | |  | |   | |       | |       | |  | |  | |  / .'| |  | |  | | "<< endl;
+    cout << "| |  | |   | |  | |   | |       | |       | |  | |  | | | /  | |  | |  | | "<< endl;
+    cout << "| |  | |   | |  ; '   | |       | |       | |  | |  | | ; |  ; |  | |  | | "<< endl;
+    cout << "| |  | |   ' `-'  /   | |       | |       | |  | |  | | ' `-'  |  | |  | | "<< endl;
+    cout << "(___)(___)   '.__.'   (___)     (___)     (___)(___)(___)`.__.'_. (___)(___) "<< endl;
 
 
-cout << "\n\n\n\n";
+    cout << "\n\n\n\n";
+
     string paragraph = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
                        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
                        "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
@@ -108,6 +126,7 @@ cout << "\n\n\n\n";
         items.push_back(entry.first);
         freqs.push_back(entry.second);
     }
+
     Node* root = buildHuffmanTree(items, freqs);
 
     map<char, string> huffmanCodes;
@@ -118,10 +137,9 @@ cout << "\n\n\n\n";
     writeEncodedTextToFile(encodedText, "encoded_text.txt");
 
     size_t initialSize = paragraph.size();
-
     size_t encodedSize = encodedText.size();
 
-    cout << "Initial size: " << initialSize << " byes(octets)" << endl;
+    cout << "Initial size: " << initialSize << " bytes(octets)" << endl;
     cout << "Encoded size: " << encodedSize << " bits" << endl;
     cout << "Compression ratio: " << ((initialSize * 8) / static_cast<double>(encodedSize)) << "x" << endl;
 
