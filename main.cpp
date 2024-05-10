@@ -75,8 +75,6 @@ void writeEncodedTextToFile(const string& encodedText, const string& fileName) {
 }
 
 int main() {
-
-
 cout<<  "___                    .-.       .-."   << endl;
 cout << "(   )                  /    \    /    \       " << endl;
 cout << " | | .-.    ___  ___   | .`. ;   | .`. ;   ___ .-. .-.     .---.   ___ .-. " << endl;
